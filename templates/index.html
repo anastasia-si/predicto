@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+{% block content %}
+<a href="{{ url_for('create_topic') }}" class="btn btn-primary mb-4">+ New Prediction Topic (Admin)</a>
+
+{% for t in topics %}
+  <div class="card mb-3 p-4">
+    <h4><a href="{{ url_for('topic_detail', id=t.id) }}" class="text-decoration-none text-dark">{{ t.title }}</a></h4>
+    <small class="text-muted">Event date: {{ t.event_date }}</small><br>
+    {% if t.outcome %}
+      <span class="badge bg-success">Resolved: {{ t.outcome }}</span>
+    {% else %}
+      <span class="badge bg-secondary">Open</span>
+    {% endif %}
+  </div>
+{% endfor %}
+{% endblock %}
