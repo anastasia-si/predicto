@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card p-4 mb-3">
+  <h3>Your Dashboard</h3>
+  <div class="row text-center mt-3">
+    <div class="col">
+      <div class="h1">{{ user_stats.participated }}</div>
+      <div class="text-muted">Polls Participated</div>
+    </div>
+    <div class="col">
+      <div class="h1 text-success">{{ user_stats.correct }}</div>
+      <div class="text-muted">Correct</div>
+    </div>
+    <div class="col">
+      <div class="h1 text-danger">{{ user_stats.incorrect }}</div>
+      <div class="text-muted">Incorrect</div>
+    </div>
+    <div class="col">
+      <div class="h1">{{ '%.0f'|format(user_stats.accuracy_pct) }}%</div>
+      <div class="text-muted">Accuracy</div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-lg-6">
+    <div class="card p-3 mb-3">
+      <h6>Recent Polls You Voted In</h6>
+      {% if recent_voted_polls %}
+        {% for p in recent_voted_polls %}
+          <a href="{{ url_for('poll_detail', poll_id=p.id) }}" class="text-decoration-none d-block mb-2">
+            <div class="d-flex align-items-center gap-3">
+              <img src="{{ url_for('uploaded_file', filename=p.image_filename) if p.image_filename else url_for('static', filename='uploads/placeholder.jpg') }}" style="width:64px;height:48px;object-fit:cover;border-radius:8px;">
+              <div class="flex-grow-1">
+                <div class="fw-semibold">{{ p.title }}</div>
+                <div class="small text-muted">{{ p.category or '—' }} {% if p.event_date %} • {{ p.event_date.strftime('%b %d') }}{% endif %}</div>
+              </div>
+              {% if p.user_correct is not none %}
+                <span class="badge {{ 'bg-success' if p.user_correct else 'bg-danger' }}">{{ 'Correct' if p.user_correct else 'Incorrect' }}</span>
+              {% else %}
+                <span class="badge bg-secondary">Waiting</span>
+              {% endif %}
+            </div>
+          </a>
+        {% endfor %}
+      {% else %}
+        <div class="text-muted">You haven't participated in any polls yet.</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card p-3 mb-3">
+      <h6>Open Polls You're Waiting On</h6>
+      {% if open_participations %}
+        {% for p in open_participations %}
+          <a href="{{ url_for('poll_detail', poll_id=p.id) }}" class="d-block mb-2 text-decoration-none text-dark">
+            <div class="d-flex gap-3 align-items-center">
+              <img src="{{ url_for('uploaded_file', filename=p.image_filename) if p.image_filename else url_for('static', filename='uploads/placeholder.jpg') }}" style="width:64px;height:48px;object-fit:cover;border-radius:8px;">
+              <div>
+                <div class="fw-semibold">{{ p.title }}</div>
+                <div class="small text-muted">{{ p.category or '—' }}</div>
+              </div>
+              <div class="ms-auto"><span class="badge bg-secondary">Waiting</span></div>
+            </div>
+          </a>
+        {% endfor %}
+      {% else %}
+        <div class="text-muted">No open participations.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

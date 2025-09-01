@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ title or "Predicto" }}</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-light bg-light nav-glass">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="{{ url_for('index') }}">🔮 Predicto</a>
+      <div class="collapse navbar-collapse">
+        <form class="d-flex ms-auto" action="{{ url_for('index') }}" method="get">
+          <input name="q" class="form-control form-control-sm me-2" type="search" placeholder="Search polls..." value="{{ request.args.get('q','') }}">
+          <select class="form-select form-select-sm me-2" name="category">
+            <option value="">All topics</option>
+            {% for c in ['Politics','Sports','Celebrity','Tech','Markets','Entertainment','Science','Other'] %}
+              <option value="{{ c }}" {{ 'selected' if request.args.get('category')==c else '' }}>{{ c }}</option>
+            {% endfor %}
+          </select>
+          <select class="form-select form-select-sm me-2" name="sort">
+            <option value="">Sort: Latest</option>
+            <option value="active" {{ 'selected' if request.args.get('sort')=='active' else '' }}>Most Active</option>
+            <option value="mature" {{ 'selected' if request.args.get('sort')=='mature' else '' }}>Most Mature</option>
+          </select>
+          <button class="btn btn-primary btn-sm" type="submit">Search</button>
+        </form>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container my-4">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, msg in messages %}
+          <div class="alert alert-{{ 'success' if category=='success' else 'warning' if category=='warning' else 'danger' }} alert-sm">
+            {{ msg }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </div>
+
+  <footer class="text-center text-muted py-4">
+    Built with ❤️ · Prototype
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,16 +1,92 @@
-{% extends "layout.html" %}
+{% extends "base.html" %}
 {% block content %}
-<a href="{{ url_for('create_topic') }}" class="btn btn-primary mb-4">+ New Prediction Topic (Admin)</a>
+<div class="hero p-4 rounded-3 mb-4">
+  <div class="d-flex align-items-center justify-content-between">
+    <div>
+      <h2 class="mb-0">Explore Forecasts</h2>
+      <div class="text-muted">Vote, discuss, and track your prediction accuracy.</div>
+    </div>
+    <div>
+      <a href="{{ url_for('create_poll') }}" class="btn btn-outline-secondary">+ Create Poll (Admin)</a>
+      <a href="{{ url_for('dashboard') }}" class="btn btn-primary ms-2">My Dashboard</a>
+    </div>
+  </div>
+</div>
 
-{% for t in topics %}
-  <div class="card mb-3 p-4">
-    <h4><a href="{{ url_for('topic_detail', id=t.id) }}" class="text-decoration-none text-dark">{{ t.title }}</a></h4>
-    <small class="text-muted">Event date: {{ t.event_date }}</small><br>
-    {% if t.outcome %}
-      <span class="badge bg-success">Resolved: {{ t.outcome }}</span>
+<div class="row">
+  <div class="col-lg-8">
+    {% if polls %}
+      <div class="list-group">
+        {% for p in polls %}
+          <a href="{{ url_for('poll_detail', poll_id=p.id) }}" class="list-group-item list-group-item-action mb-3 card-soft">
+            <div class="row g-3 align-items-center">
+              <div class="col-md-4">
+                <img src="{{ url_for('uploaded_file', filename=p.image_filename) if p.image_filename else url_for('static', filename='uploads/placeholder.jpg') }}" class="img-fluid rounded-3" style="width:100%;height:140px;object-fit:cover;">
+              </div>
+              <div class="col-md-8">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                  <span class="badge {{ 'bg-success' if p.is_active else 'bg-secondary' }}">{{ 'Open' if p.is_active else 'Closed' }}</span>
+                  {% if p.category %}<span class="badge bg-light text-dark">{{ p.category }}</span>{% endif %}
+                  {% if p.event_date %}<small class="text-muted ms-2">Event: {{ p.event_date.strftime('%b %d, %Y') }}</small>{% endif %}
+                </div>
+                <h5 class="mb-1">{{ p.title }}</h5>
+                {% if p.description %}<p class="text-muted mb-1">{{ p.description|truncate(140) }}</p>{% endif %}
+                <small class="text-muted">Votes: {{ p.total_votes or 0 }} · Options: {{ p.options|length }} · Comments: {{ p.comments|length }}</small>
+              </div>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
     {% else %}
-      <span class="badge bg-secondary">Open</span>
+      <div class="card p-3 text-center">
+        <p class="mb-0 text-muted">No polls found. Create one via Admin → Create Poll.</p>
+      </div>
     {% endif %}
   </div>
-{% endfor %}
+
+  <div class="col-lg-4">
+    <div class="card p-3 mb-3">
+      <h6>Most Active</h6>
+      {% if most_active %}
+        <a href="{{ url_for('poll_detail', poll_id=most_active.id) }}" class="text-decoration-none text-dark">
+          <div class="d-flex gap-2">
+            <img src="{{ url_for('uploaded_file', filename=most_active.image_filename) if most_active.image_filename else url_for('static', filename='uploads/placeholder.jpg') }}" style="width:84px;height:64px;object-fit:cover;border-radius:10px;">
+            <div>
+              <div class="fw-semibold">{{ most_active.title|truncate(55) }}</div>
+              <div class="text-muted small">Votes: {{ most_active.total_votes or 0 }}</div>
+            </div>
+          </div>
+        </a>
+      {% else %}
+        <div class="text-muted small">No data yet.</div>
+      {% endif %}
+    </div>
+
+    <div class="card p-3 mb-3">
+      <h6>Most Mature (Soonest)</h6>
+      {% if most_mature %}
+        <a href="{{ url_for('poll_detail', poll_id=most_mature.id) }}" class="text-decoration-none text-dark">
+          <div class="d-flex gap-2">
+            <img src="{{ url_for('uploaded_file', filename=most_mature.image_filename) if most_mature.image_filename else url_for('static', filename='uploads/placeholder.jpg') }}" style="width:84px;height:64px;object-fit:cover;border-radius:10px;">
+            <div>
+              <div class="fw-semibold">{{ most_mature.title|truncate(55) }}</div>
+              <div class="text-muted small">Event: {{ most_mature.event_date.strftime('%b %d, %Y') if most_mature.event_date else '—' }}</div>
+            </div>
+          </div>
+        </a>
+      {% else %}
+        <div class="text-muted small">No upcoming events.</div>
+      {% endif %}
+    </div>
+
+    <div class="card p-3">
+      <h6>Quick Filters</h6>
+      <div class="d-flex flex-wrap gap-2">
+        {% for c in ['Politics','Sports','Celebrity','Tech','Markets','Entertainment','Science','Other'] %}
+          <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('index', category=c) }}">{{ c }}</a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

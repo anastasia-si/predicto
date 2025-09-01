@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card p-0 mb-4">
+  <div class="row g-0">
+    <div class="col-md-5">
+      <img src="{{ url_for('uploaded_file', filename=poll.image_filename) if poll.image_filename else url_for('static', filename='uploads/placeholder.jpg') }}" style="width:100%;height:100%;object-fit:cover;min-height:240px;">
+    </div>
+    <div class="col-md-7 p-4">
+      <div class="d-flex gap-2 align-items-center mb-2">
+        <span class="badge {{ 'bg-success' if poll.is_active else 'bg-secondary' }}">{{ 'Open' if poll.is_active else 'Closed' }}</span>
+        {% if poll.category %}<span class="badge bg-light text-dark">{{ poll.category }}</span>{% endif %}
+        {% if poll.event_date %}<small class="text-muted">Event: {{ poll.event_date.strftime('%b %d, %Y') }}</small>{% endif %}
+      </div>
+
+      <h2>{{ poll.title }}</h2>
+      <p class="text-muted">{{ poll.description }}</p>
+
+      <div class="mb-3">
+        <strong>Votes: {{ poll.total_votes or 0 }}</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-lg-7">
+    <div class="card p-3 mb-3">
+      <h5>Cast Your Vote</h5>
+
+      {% if poll.is_active %}
+      <form method="post">
+        <input type="hidden" name="vote_submit" value="1">
+        <div class="list-group mb-3">
+          {% for opt in options %}
+            <label class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <input type="radio" name="option" value="{{ opt.id }}" {% if user_vote and user_vote==opt.id %}checked{% endif %}> {{ opt.text }}
+              </div>
+              <div class="text-muted small">{{ opt.votes_count or 0 }}</div>
+            </label>
+          {% endfor %}
+        </div>
+        <button class="btn btn-primary">Submit Vote</button>
+      </form>
+      {% else %}
+      <div class="alert alert-secondary">Voting is closed for this poll.</div>
+      {% endif %}
+
+      <hr>
+      <h6>Results</h6>
+      {% set total = poll.total_votes or 0 %}
+      {% for opt in options %}
+        {% set cnt = opt.votes_count or 0 %}
+        {% set pct = (cnt*100/total) if total>0 else 0 %}
+        <div class="mb-2">
+          <div class="d-flex justify-content-between">
+            <div>{{ opt.text }}</div>
+            <div class="small text-muted">{{ cnt }} · {{ '%.0f' % pct }}%</div>
+          </div>
+          <div class="progress">
+            <div class="progress-bar" role="progressbar" style="width: {{ pct }}%;" aria-valuenow="{{ pct }}" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+        </div>
+      {% endfor %}
+      {% if total==0 %}<div class="text-muted small">No votes yet.</div>{% endif %}
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card p-3 mb-3">
+      <h6>Comments</h6>
+      <form method="post" class="mb-3">
+        <textarea name="comment" class="form-control mb-2" rows="3" placeholder="Share your thinking..."></textarea>
+        <button class="btn btn-outline-primary" name="comment_submit" value="1">Post Comment</button>
+      </form>
+
+      <div class="mt-2">
+        {% for c in comments %}
+          <div class="border rounded-3 p-2 mb-2">
+            <div class="small text-muted">{{ c.created_at.strftime('%b %d, %Y %H:%M') }}</div>
+            <div>{{ c.content }}</div>
+          </div>
+        {% else %}
+          <div class="text-muted small">No comments yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Admin controls (no auth) -->
+    <div class="card p-3">
+      <h6>Admin</h6>
+      <form method="post" class="mb-2">
+        <div class="mb-2">
+          <select name="outcome" class="form-select form-select-sm">
+            <option value="">Select outcome (resolve)</option>
+            {% for o in options %}
+              <option value="{{ o.id }}">{{ o.text }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button class="btn btn-danger btn-sm" name="resolve_submit" value="1">Resolve Poll (set outcome & close)</button>
+      </form>
+
+      <form method="post" class="mt-2">
+        <button class="btn btn-outline-secondary btn-sm" name="toggle_active" value="1">{{ 'Close' if poll.is_active else 'Open' }} Poll</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
