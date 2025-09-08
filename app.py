@@ -300,5 +300,5 @@ if __name__ == "__main__":
     # on first run create DB
     with app.app_context():
         db.create_all()
-        print("✅ Tables created:", db.engine.table_names())
+        # print("✅ Tables created:", db.engine.table_names())
     app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
